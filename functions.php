@@ -225,6 +225,12 @@
             $statement->execute();
             $statement->close();
         }
+
+        $arr = array();
+        $arr['id'] = $CID;
+        $arr['class'] = strtoupper($class);
+
+        return $arr;
     }
 
     function getUserClasses($conn, $SID, $UID){
@@ -249,8 +255,26 @@
         return $arr;
     }
 
+    function getUserClassesID($conn, $SID, $UID){
+        $theSql = "SELECT classes.CID FROM classes RIGHT JOIN user_classes ON classes.CID=user_classes.CID
+                   WHERE classes.SID=? AND user_classes.UID=? ORDER BY classes.Name ASC";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("ii", $SID, $UID);
+        $statement->bind_result($CID);
+        $statement->execute();
+
+        $arr = array(); // stores class IDs
+        while($statement->fetch()){
+            array_push($arr, $CID);
+        }
+        $statement->close();
+
+        return $arr;
+    }
+
     function getCommonClasses($conn, $classes, $UID){
-        $theSql = "SELECT UID FROM user_classes WHERE CID IN ('.implode(',',$classes).') AND UID!=?";
+        $ids = implode(', ', $classes);
+        $theSql = "SELECT UID FROM user_classes WHERE CID IN ($ids) AND UID!=?";
         $statement = $conn->prepare($theSql);
         $statement->bind_param("i", $UID);
         $statement->bind_result($userID);
@@ -264,10 +288,26 @@
         }
         $statement->close();
 
-        $response = ["UID" => $arr];
-        echo json_encode($response);
-        die();
-        //return $arr;
+        return $arr;
+    }
+
+    function getUserDetails($conn, $common, $UID){
+        $ids = implode(', ', $common);
+        $theSql = "SELECT UID, Username, Name, Picture, Description FROM users WHERE UID IN ($ids)";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_result($userID, $username, $name, $picture, $description);
+        $statement->execute();
+
+        while($statement->fetch()){
+            $oneRow['id']=$userID;
+            $oneRow['username']=$username;
+            $oneRow['name']=$name;
+            $oneRow['picture']=$picture;
+            $oneRow['description']=$description;
+            $allRows[]=$oneRow;
+        }
+
+        return $allRows;
     }
 
     function getSchoolClasses($conn, $SID){

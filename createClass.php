@@ -16,12 +16,11 @@
 	$class = $_POST['class'];
 
 	$SID = getSchoolID($conn, $UID);
-	addClass($conn, $SID, $UID, $class);
+	$course = addClass($conn, $SID, $UID, $class);
 
 	$conn->close();
 
-	$response = ["success" => "Class added"];
-	echo json_encode($response);
+	echo json_encode($course);
 
 	die();
 ?>

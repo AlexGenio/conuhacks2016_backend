@@ -15,10 +15,16 @@
 	$SID = getSchoolID($conn, $UID);
 
 	// retrieve the list of all classes that the user is taking
-	$classes = getUserClasses($conn, $SID);
+	$classes = getUserClassesID($conn, $SID, $UID);
 	
+	// Get users that have classes in common with the user
 	$common = getCommonClasses($conn, $classes, $UID);
 
+	// Get uses info
+	$arr = getUserDetails($conn, $common, $UID);
+
 	$conn->close();
+	$response = ["students" => $arr];
+	echo json_encode($response);
 	die();
 ?>
