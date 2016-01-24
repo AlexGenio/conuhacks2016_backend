@@ -54,8 +54,30 @@
 			$arr['sid'] 	 = $sid;
 			$arr['picture']  = $pic;
 
-			// create and insert token into database
+			// create token
 			$token = createToken(100);
+
+			// ensure token is unique
+			$sql = "SELECT count(*) FROM tokens WHERE token=?";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param("s");
+			$stmt->execute();
+			$stmt->bind_result($dupTokens);
+			$stmt->close();
+
+			// if not unique, generate new token
+			while($dupTokens != 0){
+				// create token
+				$token = createToken(100);
+
+				$sql = "SELECT count(*) FROM tokens WHERE token=?";
+				$stmt = $conn->prepare($sql);
+				$stmt->bind_param("s");
+				$stmt->execute();
+				$stmt->bind_result($dupTokens);
+				$stmt->close();
+			}
+
 			$sql = "INSERT INTO tokens (Token, UID) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param("si", $token, $uid);
@@ -79,7 +101,8 @@
 			$stmt->close();
 			echo json_encode($arr);
 		}else{
-			echo json_encode("Username or password incorrect");
+			$response = ["error" => "Username or password incorrect"];
+			echo json_encode($response);
 		}
 	}
 	$conn->close();
