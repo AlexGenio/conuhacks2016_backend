@@ -226,4 +226,26 @@
             $statement->close();
         }
     }
+
+    function getUserClasses($conn, $SID){
+        $theSql = "SELECT classes.Name, classes.CID FROM classes LEFT JOIN user_classes ON classes.CID=user_classes.CID
+                   WHERE classes.SID=? ORDER BY classes.Name ASC";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("i", $SID);
+        $statement->bind_result($class, $CID);
+        $statement->execute();
+
+        $arr = array(); // stores class names
+        $i = 0;
+        while($statement->fetch()){
+            $arr[$i] = array(
+                'id' => $CID,
+                'name' => $class
+            );
+            $i++;
+        }
+        $statement->close();
+
+        return $arr;
+    }
 ?>
