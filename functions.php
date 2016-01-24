@@ -64,4 +64,23 @@
 
         return $UID;
     }
+
+    function filterSchoolByName($conn, $school){
+        $theSql = "SELECT Name FROM schools WHERE lower(Name) LIKE lower('?%');";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("s", $school);
+        $statement->bind_result($name);
+        $statement->execute();
+
+        $schoolArr = array();
+        $schoolArr['schools'] = array();
+
+        while($statement->fetch()){
+            array_push($schoolArr['schools'], $name);
+        }
+
+        $statement->close();
+
+        return $schoolArr;
+    }
 ?>
