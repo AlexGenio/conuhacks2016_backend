@@ -24,4 +24,44 @@
         }
         return $token;
     }
+
+    function checkEmptyToken($token){
+        // Validate token
+        if($token == ""){
+            $response = ["error" => "Invalid token"];
+            echo json_encode($response);
+            die();
+        }
+    }
+
+    function checkExpiredToken($conn, $token){
+        // Check if token is expired
+        $theSql = "SELECT count(*) FROM tokens WHERE Token=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("s", $token);
+        $statement->bind_result($result);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        if($result == 0){
+            $response = ["error" => "Expired token"];
+            echo json_encode($response);
+            die();
+        }
+    }
+
+    function getUserByToken($conn, $token){
+        // Token is valid and unexpired
+        // Get the user corresponding to the token
+        $theSql = "SELECT UID FROM users WHERE UID=(SELECT UID FROM tokens WHERE Token=?)";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("s", $token);
+        $statement->bind_result($UID);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        return $UID;
+    }
 ?>
