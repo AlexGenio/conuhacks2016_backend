@@ -84,7 +84,7 @@
         return $schoolArr;
     }
 
-    function deleteToken($token){
+    function deleteToken($conn, $token){
         $theSql = "DELETE FROM tokens WHERE Token=?";
         $statement = $conn->prepare($theSql);
         $statement->bind_param("s", $token);

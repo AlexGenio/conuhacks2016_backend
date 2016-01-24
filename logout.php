@@ -13,8 +13,11 @@
 
 	// Token still exists
 	// Delete the user's token
-	deleteToken($token);
+	deleteToken($conn, $token);
 
 	$conn->close();
+	$response = ["success" => "Logged out"];
+	echo json_encode($response);
+
 	die();
 ?>
