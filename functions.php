@@ -248,4 +248,25 @@
 
         return $arr;
     }
+
+    function getSchoolClasses($conn, $SID){
+        $sql = "SELECT CID, Name FROM classes WHERE SID=? ORDER BY Name ASC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $SID);
+        $stmt->execute();
+        $stmt->bind_result($cid, $course);
+
+        $arr = array(); // stores course names
+        $i = 0;
+        while($stmt->fetch()){
+            $arr[$i] = array(
+                'id' => $cid,
+                'name' => $course
+            );
+            $i++;
+        }
+        $stmt->close();
+
+        return $arr;
+    }
 ?>

@@ -11,10 +11,11 @@
 	checkExpiredToken($conn, $token);
 
 	$uid = getUserByToken($conn, $token);
+
 	$sid = getSchoolID($conn, $uid);
 
-	// retrieve the name of all classes that the user is taking
-	$arr = getUserClasses($conn, $sid);
+	// retrieve all available courses at user's school
+	$arr = getSchoolClasses($conn, $sid);
 
 	$conn->close();
 
