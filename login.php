@@ -86,6 +86,16 @@
 
 			$arr['token'] = $token;
 
+			// get user's school name
+			$sql = "SELECT Name FROM schools WHERE SID=?";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param("i", $sid);
+			$stmt->execute();
+			$stmt->bind_result($school);
+			$stmt->close();
+
+			$arr['school'] = $school;
+
 			// get user's groups' information
 			$sql = "SELECT GID FROM memberships WHERE UID=(SELECT UID FROM users WHERE Username=?)";
 			$stmt = $conn->prepare($sql);
