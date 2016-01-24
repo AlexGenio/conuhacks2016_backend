@@ -12,7 +12,13 @@
 	checkExpiredToken($conn, $token);
 	$UID = getUserByToken($conn, $token);
 
+	// Get school name entered
+	$school = stripslashes(trim($_POST['school']));
 
+	// Filter schools starting with what was entered
+	$schoolList = filterSchoolByName($conn, $school);
+
+	echo json_encode($schoolList);
 
 	$conn->close();
 ?>
