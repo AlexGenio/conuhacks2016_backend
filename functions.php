@@ -306,6 +306,29 @@
             $oneRow['description']=$description;
             $allRows[]=$oneRow;
         }
+        $statement->close();
+
+        return $allRows;
+    }
+
+    function getUserSwipeDetails($conn, $UID){
+        $theSql = "SELECT UID, Username, Name, Picture, Description FROM users WHERE UID=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("i", $UID);
+        $statement->bind_result($userID, $username, $name, $picture, $description);
+        $statement->execute();
+        $statement->fetch();
+    
+        $allRows = array();
+        
+        $oneRow['id']=$userID;
+        $oneRow['username']=$username;
+        $oneRow['name']=$name;
+        $oneRow['picture']=$picture;
+        $oneRow['description']=$description;
+        $allRows[]=$oneRow;
+
+        $statement->close();
 
         return $allRows;
     }
@@ -329,5 +352,39 @@
         $stmt->close();
 
         return $arr;
+    }
+
+    function insertSwipeResult($conn, $UID, $swipee, $value){  
+        $sql = "SELECT count(*) FROM swipes WHERE UID=? AND RID=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $UID, $swipee);
+        $stmt->execute();
+        $stmt->bind_result($result);
+        $stmt->fetch();
+        $stmt->close();
+
+        if($result == 0){
+            $sql = "INSERT INTO swipes (UID, RID, Value) VALUES (?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iii", $UID, $swipee, $value);
+            $stmt->execute();
+            $stmt->close();
+        }else{
+            $response = ["error" => "Double swipe"];
+            echo json_encode($response);
+            die();
+        }
+    }
+
+    function getSwipeeValue($conn, $UID, $swipee){
+        $sql = "SELECT value FROM swipes WHERE RID=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $swipee);
+        $stmt->execute();
+        $stmt->bind_result($valSwipee);
+        $stmt->fetch();
+        $stmt->close();
+
+        return $valSwipee;
     }
 ?>

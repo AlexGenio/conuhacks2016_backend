@@ -20,7 +20,7 @@
 	// Get users that have classes in common with the user
 	$common = getCommonClasses($conn, $classes, $UID);
 
-	// Get uses info
+	// Get user info
 	$arr = getUserDetails($conn, $common, $UID);
 
 	$conn->close();

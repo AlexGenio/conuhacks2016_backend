@@ -11,6 +11,11 @@
 
 	// Validate inputed fields
 	validateNewUser($username, $name, $school, $password);
+
+	// Set default icon
+	if($picture == ""){
+		$picture = 'pictures/icon_default.png';
+	}
 	
 	require_once 'connect.php';
 	require_once 'passwordLib.php';
