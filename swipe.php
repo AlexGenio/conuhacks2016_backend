@@ -15,11 +15,16 @@
 	// Get swipee info entered
 	$swipeeID = stripslashes(trim($_POST['swipee']));
 	$value = stripslashes(trim($_POST['value']));
+	$classID = stripslashes(trim($_POST['cid']));
 
-	insertSwipeResult($conn, $UID, $swipeeID, $value);
+	insertSwipeResult($conn, $UID, $swipeeID, $value, $classID);
 	$swipeeVal = getSwipeeValue($conn, $swipeeID, $UID, $value);
+	$cidSwipee = getClassValue($conn, $swipee, $UID, $classID);
 
-	if($swipeeVal == 1 && $value == 1){
+	if(($swipeeVal == 1) && ($value == 1) && ($cidSwipee == $classID)){
+
+		checkIfGroupExists($conn, $UID, $swipeeID, $classID);
+
 		// Get user info
 		$arr = getUserSwipeDetails($conn, $UID);
 		$arr['status'] = "matched";

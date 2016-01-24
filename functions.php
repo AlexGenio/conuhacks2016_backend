@@ -354,19 +354,19 @@
         return $arr;
     }
 
-    function insertSwipeResult($conn, $UID, $swipee, $value){  
-        $sql = "SELECT count(*) FROM swipes WHERE UID=? AND RID=?";
+    function insertSwipeResult($conn, $UID, $swipee, $value, $CID){  
+        $sql = "SELECT count(*) FROM swipes WHERE UID=? AND RID=? AND CID=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $UID, $swipee);
+        $stmt->bind_param("iii", $UID, $swipee, $CID);
         $stmt->execute();
         $stmt->bind_result($result);
         $stmt->fetch();
         $stmt->close();
 
         if($result == 0){
-            $sql = "INSERT INTO swipes (UID, RID, Value) VALUES (?, ?, ?)";
+            $sql = "INSERT INTO swipes (UID, RID, Value, CID) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iii", $UID, $swipee, $value);
+            $stmt->bind_param("iiii", $UID, $swipee, $value, $CID);
             $stmt->execute();
             $stmt->close();
         }else{
@@ -376,15 +376,186 @@
         }
     }
 
-    function getSwipeeValue($conn, $UID, $swipee){
-        $sql = "SELECT value FROM swipes WHERE RID=?";
+    function getSwipeeValue($conn, $UID, $swipee, $CID){
+        $sql = "SELECT value FROM swipes WHERE RID=? AND CID=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $swipee);
+        $stmt->bind_param("ii", $swipee, $CID);
         $stmt->execute();
         $stmt->bind_result($valSwipee);
         $stmt->fetch();
         $stmt->close();
 
         return $valSwipee;
+    }
+
+    function getClassValue($conn, $UID, $swipee, $CID){
+        $sql = "SELECT CID FROM swipes WHERE RID=? AND CID=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $swipee, $CID);
+        $stmt->execute();
+        $stmt->bind_result($cidSwipee);
+        $stmt->fetch();
+        $stmt->close();
+
+        return $cidSwipee;
+    }
+
+    function checkIfGroupExists($conn, $UID, $swipee, $CID){
+        $sql = "SELECT count(*) FROM memberships WHERE UID=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $UID);
+        $stmt->execute();
+        $stmt->bind_result($userVal);
+        $stmt->fetch();
+        $stmt->close();
+
+        $sql = "SELECT count(*) FROM memberships WHERE UID=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $swipee);
+        $stmt->execute();
+        $stmt->bind_result($swipeeVal);
+        $stmt->fetch();
+        $stmt->close();
+
+        if($userVal > 0){
+            // get user's groups' IDs
+            $sql = "SELECT GID FROM memberships WHERE UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $UID);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+
+            $gidUserArr = array();
+            while($stmt->fetch()){
+                array_push($gidArr, $gid);
+            }
+            $stmt->close();
+
+            $userGroups = implode(', ', $gidArr);
+
+            // check if existing group is for desired class
+            $sql = "SELECT count(*) FROM groups WHERE GID IN ($userGroups) AND CID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID);
+            $stmt->execute();
+            $stmt->bind_result($userGroupCount);
+            $stmt->fetch();
+            $stmt->close();
+        }
+
+        if($swipeeVal > 0){
+            // get swipee's groups' IDs
+            $sql = "SELECT GID FROM memberships WHERE UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $swipee);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+
+            $gidArr = array();
+            while($stmt->fetch()){
+                array_push($gidSwipeeArr, $gid);
+            }
+            $stmt->close();
+
+            $swipeeGroups = implode(', ', $gidSwipeeArr);
+
+            // check if existing group is for desired class
+            $sql = "SELECT count(*) FROM groups WHERE GID IN ($swipeeGroups) AND CID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID);
+            $stmt->execute();
+            $stmt->bind_result($swipeeGroupCount);
+            $stmt->fetch();
+            $stmt->close();
+        }
+
+        if($userGroupCount == 0 && $swipeeGroupCount == 0){
+            // create group
+            $sql = "INSERT INTO groups (CID) VALUES (?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID);
+            $stmt->execute();
+            $stmt->close();
+
+            // get group id
+            $lastID = $conn->insert_id;
+
+            // add members to group
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $lastID, $UID);
+            $stmt->execute();
+            $stmt->close();
+
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $lastID, $swipee);
+            $stmt->execute();
+            $stmt->close();
+        }elseif($userGroupCount == 0 && $swipeeGroupCount == 1){
+            // get swipee's group id
+            $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID, $swipee);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+            $stmt->fetch();
+            $stmt->close();
+
+            // add user to group
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $gid, $UID);
+            $stmt->execute();
+            $stmt->close();
+        }elseif($userGroupCount == 1 && $swipeeGroupCount == 0){
+            // get users's group id
+            $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID, $UID);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+            $stmt->fetch();
+            $stmt->close();
+
+            // add swipee to group
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $gid, $swipee);
+            $stmt->execute();
+            $stmt->close();
+        }elseif($userGroupCount == 1 && $swipeeGroupCount == 1){
+            // get users's group id
+            $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID, $UID);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+            $stmt->fetch();
+            $stmt->close();
+
+            // add swipee to group
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $gid, $swipee);
+            $stmt->execute();
+            $stmt->close();
+
+            // get swipee's group id
+            $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $CID, $swipee);
+            $stmt->execute();
+            $stmt->bind_result($gid);
+            $stmt->fetch();
+            $stmt->close();
+
+            // add user to group
+            $sql = "INSERT INTO memberships (GID, UID) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $gid, $UID);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 ?>
