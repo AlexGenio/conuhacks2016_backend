@@ -326,11 +326,10 @@
         $oneRow['name']=$name;
         $oneRow['picture']=$picture;
         $oneRow['description']=$description;
-        $allRows[]=$oneRow;
 
         $statement->close();
 
-        return $allRows;
+        return $oneRow;
     }
 
     function getSchoolClasses($conn, $SID){
@@ -441,6 +440,8 @@
             $stmt->bind_result($userGroupCount);
             $stmt->fetch();
             $stmt->close();
+
+            var_dump($userGroupCount);
         }
 
         if($swipeeVal > 0){
@@ -496,7 +497,7 @@
             // get swipee's group id
             $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $CID, $swipee);
+            $stmt->bind_param("ii", $CID, $swipee);
             $stmt->execute();
             $stmt->bind_result($gid);
             $stmt->fetch();
@@ -512,7 +513,7 @@
             // get users's group id
             $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $CID, $UID);
+            $stmt->bind_param("ii", $CID, $UID);
             $stmt->execute();
             $stmt->bind_result($gid);
             $stmt->fetch();
@@ -528,7 +529,7 @@
             // get users's group id
             $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $CID, $UID);
+            $stmt->bind_param("ii", $CID, $UID);
             $stmt->execute();
             $stmt->bind_result($gid);
             $stmt->fetch();
@@ -544,7 +545,7 @@
             // get swipee's group id
             $sql = "SELECT memberships.GID FROM memberships RIGHT JOIN groups ON memberships.GID=groups.GID WHERE groups.CID=? AND memberships.UID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $CID, $swipee);
+            $stmt->bind_param("ii", $CID, $swipee);
             $stmt->execute();
             $stmt->bind_result($gid);
             $stmt->fetch();

@@ -19,7 +19,7 @@
 
 	insertSwipeResult($conn, $UID, $swipeeID, $value, $classID);
 	$swipeeVal = getSwipeeValue($conn, $swipeeID, $UID, $value);
-	$cidSwipee = getClassValue($conn, $swipee, $UID, $classID);
+	$cidSwipee = getClassValue($conn, $swipeeID, $UID, $classID);
 
 	if(($swipeeVal == 1) && ($value == 1) && ($cidSwipee == $classID)){
 
