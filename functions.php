@@ -37,7 +37,7 @@
         return $result;
     }
 
-    function registerUser($username, $name, $school, $SID, $picture, $hash, $description){
+    function registerUser($conn, $username, $name, $school, $picture, $hash, $description){
         // Check if the school is registered
         $theSql = "SELECT count(*) FROM schools WHERE Name=?";
         $statement = $conn->prepare($theSql);
@@ -182,7 +182,7 @@
 
     function addClass($conn, $SID, $UID, $class){
         // Check if the class exists
-        $theSql = "SELECT count(*) FROM classes WHERE Name=?";
+        $theSql = "SELECT count(*) FROM classes WHERE Name=upper(?)";
         $statement = $conn->prepare($theSql);
         $statement->bind_param("s", $class);
         $statement->bind_result($result);
@@ -192,7 +192,7 @@
 
         if($result == 0){
             // Register the class in the schools
-            $theSql = "INSERT INTO classes (Name, SID) VALUES (?, ?)";
+            $theSql = "INSERT INTO classes (Name, SID) VALUES (upper(?), ?)";
             $statement = $conn->prepare($theSql);
             $statement->bind_param("si", $class, $SID);
             $statement->execute();
@@ -209,9 +209,9 @@
         $statement->close();
 
         // Check if the student already has the class
-        $theSql = "SELECT count(*) FROM user_classes WHERE CID=?";
+        $theSql = "SELECT count(*) FROM user_classes WHERE CID=? and UID=?";
         $statement = $conn->prepare($theSql);
-        $statement->bind_param("i", $CID);
+        $statement->bind_param("ii", $CID, $UID);
         $statement->bind_result($result);
         $statement->execute();
         $statement->fetch();
@@ -227,11 +227,11 @@
         }
     }
 
-    function getUserClasses($conn, $SID){
-        $theSql = "SELECT classes.Name, classes.CID FROM classes LEFT JOIN user_classes ON classes.CID=user_classes.CID
-                   WHERE classes.SID=? ORDER BY classes.Name ASC";
+    function getUserClasses($conn, $SID, $UID){
+        $theSql = "SELECT classes.Name, classes.CID FROM classes RIGHT JOIN user_classes ON classes.CID=user_classes.CID
+                   WHERE classes.SID=? AND user_classes.UID=? ORDER BY classes.Name ASC";
         $statement = $conn->prepare($theSql);
-        $statement->bind_param("i", $SID);
+        $statement->bind_param("ii", $SID, $UID);
         $statement->bind_result($class, $CID);
         $statement->execute();
 
@@ -247,6 +247,27 @@
         $statement->close();
 
         return $arr;
+    }
+
+    function getCommonClasses($conn, $classes, $UID){
+        $theSql = "SELECT UID FROM user_classes WHERE CID IN ('.implode(',',$classes).') AND UID!=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("i", $UID);
+        $statement->bind_result($userID);
+        $statement->execute();
+
+        $arr = array(); // stores class names
+        $i = 0;
+        while($statement->fetch()){
+            $arr[$i] = $userID;
+            $i++;
+        }
+        $statement->close();
+
+        $response = ["UID" => $arr];
+        echo json_encode($response);
+        die();
+        //return $arr;
     }
 
     function getSchoolClasses($conn, $SID){

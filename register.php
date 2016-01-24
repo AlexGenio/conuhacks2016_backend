@@ -26,7 +26,7 @@
 	if($result == 0){
 		// Unique user
 		// Register the user
-		registerUser($username, $name, $school, $SID, $picture, $hash, $description);
+		registerUser($conn, $username, $name, $school, $picture, $hash, $description);
 
 		$response = ["success" => "User registered"];
 		echo json_encode($response);

@@ -13,7 +13,11 @@
 	$UID = getUserByToken($conn, $token);
 
 	$SID = getSchoolID($conn, $UID);
+
+	// retrieve the list of all classes that the user is taking
+	$classes = getUserClasses($conn, $SID);
 	
+	$common = getCommonClasses($conn, $classes, $UID);
 
 	$conn->close();
 	die();

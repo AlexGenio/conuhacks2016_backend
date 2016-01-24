@@ -14,7 +14,7 @@
 	$sid = getSchoolID($conn, $uid);
 
 	// retrieve the name of all classes that the user is taking
-	$arr = getUserClasses($conn, $sid);
+	$arr = getUserClasses($conn, $sid, $uid);
 
 	$conn->close();
 

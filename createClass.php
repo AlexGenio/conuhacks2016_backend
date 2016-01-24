@@ -12,7 +12,7 @@
 	checkExpiredToken($conn, $token);
 	$UID = getUserByToken($conn, $token);
 
-	// Get school name entered
+	// Get class name entered
 	$class = $_POST['class'];
 
 	$SID = getSchoolID($conn, $UID);
