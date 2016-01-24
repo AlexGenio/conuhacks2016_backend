@@ -10,5 +10,7 @@
 
 	checkExpiredToken($conn, $token);
 
-	
+	$uid = getUserByToken($token);
+
+	$sql = "SELECT CID, Name, Section, SID"
 ?>

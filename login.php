@@ -39,20 +39,21 @@
 			$arr = array();	// user's and user's groups' info
 
 			// get user's information
-			$sql = "SELECT UID, Username, Name, SID, Picture FROM users WHERE Username=?";
+			$sql = "SELECT UID, Username, Name, SID, Picture, Description FROM users WHERE Username=?";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param("s", $username);
 			$stmt->execute();
-			$stmt->bind_result($uid, $un, $name, $sid, $pic);
+			$stmt->bind_result($uid, $un, $name, $sid, $pic, $desc);
 			$stmt->fetch();
 			$stmt->close();
 
 			// store user's information
-			$arr['uid'] 	 = $uid;
-			$arr['username'] = $un;
-			$arr['name'] 	 = $name;
-			$arr['sid'] 	 = $sid;
-			$arr['picture']  = $pic;
+			$arr['uid'] 	 	= $uid;
+			$arr['username'] 	= $un;
+			$arr['name'] 	 	= $name;
+			$arr['sid'] 	 	= $sid;
+			$arr['picture']  	= $pic;
+			$arr['description'] = $desc;
 
 			// create token
 			$token = createToken(100);
@@ -92,6 +93,7 @@
 			$stmt->bind_param("i", $sid);
 			$stmt->execute();
 			$stmt->bind_result($school);
+			$stmt->fetch();
 			$stmt->close();
 
 			$arr['school'] = $school;
