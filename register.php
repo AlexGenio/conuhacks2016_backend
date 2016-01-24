@@ -1,41 +1,41 @@
 <?php
 	// Get fileds entered by user
-	if(isset($_POST['btn_register'])){
-		$username = stripslashes(trim($_POST['_username']));
-		$name = stripslashes(trim($_POST['_name']));
-		$school = stripslashes(trim($_POST['_school']));
-		$picture = stripslashes(trim($_POST['_picture']));
-		$password = stripslashes(trim($_POST['_password']));
-		$description = stripslashes(trim($_POST['_description']));
-	}
+	$username = stripslashes(trim($_POST['username']));
+	$name = stripslashes(trim($_POST['name']));
+	$school = stripslashes(trim($_POST['school']));
+	$picture = stripslashes(trim($_POST['picture']));
+	$password = stripslashes(trim($_POST['password']));
+	$description = stripslashes(trim($_POST['description']));
 	
 	// Validate inputed fields
 	if($username == ""){
-		$response = ["error" => "Username required"]
+		$response = ["error" => "Username required"];
 		echo json_encode($response);
 		die();
 	}
 	if($name == ""){
-		$response = ["error" => "Name required"]
+		$response = ["error" => "Name required"];
 		echo json_encode($response);
 		die();
 	}
 	if($school == ""){
-		$response = ["error" => "School required"]
+		$response = ["error" => "School required"];
 		echo json_encode($response);
 		die();
 	}
 	if($password == ""){
-		$response = ["error" => "Username required")]
+		$response = ["error" => "Password required"];
 		echo json_encode($response);
 		die();
 	}
 	
+	require_once 'connect.php';
+	require_once 'passwordLib.php';
+
 	// Encrypt the password
 	$hash = password_hash($password, PASSWORD_BCRYPT);
 
 	// Create connection
-	require_once 'connect.php';
 	global $conn;
 
 	// Validate uniqueness of user being registered
@@ -84,10 +84,11 @@
 		$statement->execute();
 		$statement->close();
 
-		$response = ["success" => "User registered")]
+		$response = ["success" => "User registered"];
 		echo json_encode($response);
 	}else{
-		$response = ($response);
+		$response = ["Error" => "Username taken"];
+		echo json_encode($response);
 	}
 	$conn->close();
 	die();
