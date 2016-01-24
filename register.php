@@ -7,27 +7,10 @@
 	$password = stripslashes(trim($_POST['password']));
 	$description = stripslashes(trim($_POST['description']));
 	
+	require_once 'functions.php';
+
 	// Validate inputed fields
-	if($username == ""){
-		$response = ["error" => "Username required"];
-		echo json_encode($response);
-		die();
-	}
-	if($name == ""){
-		$response = ["error" => "Name required"];
-		echo json_encode($response);
-		die();
-	}
-	if($school == ""){
-		$response = ["error" => "School required"];
-		echo json_encode($response);
-		die();
-	}
-	if($password == ""){
-		$response = ["error" => "Password required"];
-		echo json_encode($response);
-		die();
-	}
+	validateNewUser($username, $name, $school, $password);
 	
 	require_once 'connect.php';
 	require_once 'passwordLib.php';
@@ -38,51 +21,12 @@
 	// Create connection
 	global $conn;
 
-	// Validate uniqueness of user being registered
-	$theSql = "SELECT count(*) FROM users WHERE Username=?";
-	$statement = $conn->prepare($theSql);
-	$statement->bind_param("s", $username);
-	$statement->bind_result($result);
-	$statement->execute();
-	$statement->fetch();
-	$statement->close();
+	$result = checkUniqueUsername($conn, $username);
 
 	if($result == 0){
 		// Unique user
-		// Check if the school is registered
-		$theSql = "SELECT count(*) FROM schools WHERE Name=?";
-		$statement = $conn->prepare($theSql);
-		$statement->bind_param("s", $school);
-		$statement->bind_result($result);
-		$statement->execute();
-		$statement->fetch();
-		$statement->close();
-
-		if($result == 0){
-			// Register the school
-			$theSql = "INSERT INTO schools (Name) VALUES (?)";
-			$statement = $conn->prepare($theSql);
-			$statement->bind_param("s", $school);
-			$statement->execute();
-			$statement->close();
-		}
-
-		// Get the school's ID
-		$theSql = "SELECT SID FROM schools WHERE Name=?";
-		$statement = $conn->prepare($theSql);
-		$statement->bind_param("s", $school);
-		$statement->bind_result($SID);
-		$statement->execute();
-		$statement->fetch();
-		$statement->close();
-
 		// Register the user
-		$theSql = "INSERT INTO users (Username, Name, SID, Picture, Password, Description) 
-				VALUES (?, ?, ?, ?, ?, ?)";
-		$statement = $conn->prepare($theSql);
-		$statement->bind_param("ssisss", $username, $name, $SID, $picture, $hash, $description);
-		$statement->execute();
-		$statement->close();
+		registerUser($username, $name, $school, $SID, $picture, $hash, $description);
 
 		$response = ["success" => "User registered"];
 		echo json_encode($response);
