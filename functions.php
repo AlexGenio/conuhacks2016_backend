@@ -66,7 +66,7 @@
     }
 
     function filterSchoolByName($conn, $school){
-        $theSql = "SELECT Name FROM schools WHERE lower(Name) LIKE lower('?%');";
+        $theSql = "SELECT Name FROM schools WHERE lower(Name) LIKE lower(CONCAT(?, '%'))";
         $statement = $conn->prepare($theSql);
         $statement->bind_param("s", $school);
         $statement->bind_result($name);
