@@ -92,4 +92,63 @@
         $statement->fetch();
         $statement->close();
     }
+
+    function getSchoolID($conn, $UID){
+        $theSql = "SELECT SID FROM users WHERE UID=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("i", $UID);
+        $statement->bind_result($SID);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        return $SID;
+    }
+
+    function addClass($conn, $SID, $UID, $class){
+        // Check if the class exists
+        $theSql = "SELECT count(*) FROM classes WHERE Name=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("s", $class);
+        $statement->bind_result($result);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        if($result == 0){
+            // Register the class in the schools
+            $theSql = "INSERT INTO classes (Name, SID) VALUES (?, ?)";
+            $statement = $conn->prepare($theSql);
+            $statement->bind_param("si", $class, $SID);
+            $statement->execute();
+            $statement->close();
+        }
+
+        // Get the class ID
+        $theSql = "SELECT CID FROM classes WHERE Name=? AND SID=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("si", $class, $SID);
+        $statement->bind_result($CID);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        // Check if the student already has the class
+        $theSql = "SELECT count(*) FROM user_classes WHERE CID=?";
+        $statement = $conn->prepare($theSql);
+        $statement->bind_param("i", $CID);
+        $statement->bind_result($result);
+        $statement->execute();
+        $statement->fetch();
+        $statement->close();
+
+        if($result == 0){
+            // Register the class for the student
+            $theSql = "INSERT INTO user_classes (CID, UID) VALUES (?, ?)";
+            $statement = $conn->prepare($theSql);
+            $statement->bind_param("ii", $CID, $UID);
+            $statement->execute();
+            $statement->close();
+        }
+    }
 ?>
